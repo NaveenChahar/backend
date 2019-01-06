@@ -15,10 +15,12 @@ const bodyParser=require("body-parser");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+const empRoutes=require('./api/routes/empRoutes');   //require routes
 
 
-var routes = require('./api/routes/empRoutes'); //importing route
-routes(app); //register the route
+app.use('/employee',empRoutes);                      //use routes
+//app.use('/user');
+
 
 app.use('**',express.static(path.join(__dirname, 'public/error.html')));
 
