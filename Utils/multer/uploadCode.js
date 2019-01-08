@@ -3,27 +3,46 @@ const path=require('path');
 
 const aws = require('aws-sdk');
 const multerS3 = require('multer-s3');
-const s3 = new aws.S3({});
+
+aws.config.update({
+  secretAccessKey: "l77HwY6WS3M/2Qkb/aNC/eDrRuDctgekHNKycZ2q",
+  accessKeyId: "AKIAI6HMDYHPRXVZZSBA",
+  region: "ap-south-1"
+});
+
+const s3 = new aws.S3();
 
 var files={
-     policeVerification:false,
-     adharCard:false,
-     gST:false,
-     nomineePhoto:false,
-     panCardPhoto:false,
-     mobile_no:null
+    //  policeVerification:false,
+    //  adharCard:false,
+    //  gST:false,
+    //  nomineePhoto:false,
+    //  panCardPhoto:false,
+     mobile_no:null,
+     //referralCode:null,
+     id:null,
+     imageUrls:[{
+       policeVerification:null,
+     }, 
+     {
+       adharCard:null,
+     },
+     {
+       gST:null
+     },
+     {
+       nomineePhoto:null
+     },
+     {
+       cancelCheque:null
+     },
+     {
+       panCardPhoto:null
+     }
+    ],
 
 };
 
-const storage = multer.diskStorage({
-    destination:"./uploads/",
-    filename:function(req,file,cb){
-      files[file.fieldname]=true;
-      files.mobile_no=req.body.mobile_no;
-        cb(null,file.fieldname +' '+req.body.mobile_no+ path.extname(file.originalname));
-
-    }
-})
 function checkFileType(file,cb){
   const filetypes =/jpeg|png|jpg|gif/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
@@ -37,11 +56,22 @@ function checkFileType(file,cb){
 
 
   const upload = multer({
-  storage:storage,
- limits:{fileSize:1000000000},
-  fileFilter:function(res,file,cb){
-      checkFileType(file,cb)
-  }
+  storage:multerS3({
+    s3: s3,
+    bucket: "big-basket-bucket",
+    acl: 'public-read-write',
+    metadata: function(req, file, cb){
+        cb(null, {fieldName: file.fieldname});
+    },
+    key: function(req, file, cb){
+      //files[file.fieldname]=true;
+      files.mobile_no=req.body.mobile_no;
+        cb(null,file.fieldname +' '+req.body.mobile_no+ path.extname(file.originalname));  }
+  }),
+//  limits:{fileSize:1000000000},
+//  fileFilter:function(res,file,cb){
+//       checkFileType(file,cb)
+//   }
 }).fields([
 {
   name:'policeVerification'

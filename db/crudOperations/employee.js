@@ -9,7 +9,7 @@ const path=require("path");
 
 const empCrud={
 
-    doLogin(req,res){
+    doLogin(req,res,object){
         
         console.log('came here later');
         Emp.findOne(object,(err,data)=>{
@@ -24,7 +24,7 @@ const empCrud={
 
     doRegister(req,res,object){
 
-        object.id=Uid();
+       // object.id=Uid();
 
 
        /*var img1path=path.join(__dirname,'../../docUploads/policeVerification ')+req.body.mobile_no+'.png';
@@ -55,6 +55,7 @@ const empCrud={
             
             });
     },
+
 
  
 

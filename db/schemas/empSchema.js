@@ -76,15 +76,26 @@ var empSchema=new Schema({
             type:String
         }
     }],
-    policeVerificationImg:{
-        data:Buffer,
-        contentType:String,
-    },
-    panCardPhoto:{
-        data:Buffer,
-        contentType:String,
-    }
-
+    ImageUrls:[{
+        policeVerification:{
+            type:String,
+        },
+        pancardPhoto:{
+            type:String,
+        },
+        adharCard:{
+            type:String
+        },
+        gST:{
+            type:String
+        },
+        nomineePhoto:{
+            type:String
+        },
+        cancelCheque:{
+            type:String
+        }
+    }],
     
 
 });

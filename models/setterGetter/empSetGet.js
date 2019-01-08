@@ -27,14 +27,14 @@ const object={
         pancardno:null, 
     
     }], 
-    policeVerificationImg:{
-        data:null,
-        contentType:null
-    },
-    panCardPhoto:{
-        data:null,
-        contentType:null
-    }
+    ImageUrls:[{
+        policeVerification:null,
+        gST:null,
+        panCardPhoto:null,
+        nomineePhoto:null,
+        cancelCheque:null,
+        adharCard:null,
+    }]
     
 
 
