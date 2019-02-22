@@ -33,7 +33,7 @@ const object={
         panCardPhoto:null,
         nomineePhoto:null,
         cancelCheque:null,
-        adharCard:null,
+        addressProof:null,
     }]
     
 

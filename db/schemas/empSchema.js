@@ -83,7 +83,7 @@ var empSchema=new Schema({
         pancardPhoto:{
             type:String,
         },
-        adharCard:{
+        addressProof:{
             type:String
         },
         gST:{

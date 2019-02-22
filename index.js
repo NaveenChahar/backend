@@ -16,9 +16,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 const empRoutes=require('./api/routes/empRoutes');   //require routes
+const adminProductRoutes=require('./api/routes/adminProductRoutes');
+const vendorProductRoutes=require('./api/routes/vendorProductsRoutes');
 
 
-app.use('/employee',empRoutes);                      //use routes
+app.use('/employee',empRoutes); 
+app.use('/adminProducts',adminProductRoutes);   
+app.use('/vendorProducts',vendorProductRoutes);                  //use routes
 //app.use('/user');
 
 
