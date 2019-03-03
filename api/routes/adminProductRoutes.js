@@ -1,5 +1,6 @@
 const express=require('express');
 const adminProductRoutes=express.Router();
+const logger=require('../../Utils/winstonLogger');
 const jwt=require('jsonwebtoken');
 const multer=require('multer');
 const xlstojson = require("xls-to-json-lc");
@@ -16,11 +17,11 @@ adminProductRoutes.post('/upload',function(req,res){
     /* dont mess with multer the req above and below are not even same*/
     var exceltojson; //Initialization
     singleUpload(req,res,function(err){
-        jwt.verify(req.body.idToken,securekey,(error,authData)=>{     //checking if token is present or not
-            if(error){
-                res.json("session timed out");
-            }
-            else{
+        //jwt.verify(req.body.idToken,securekey,(error,authData)=>{     //checking if token is present or not
+            //if(error){
+            //    res.json("session timed out");
+            //}
+            //else{
         if(err instanceof multer.MulterError){
             console.log(err);
         }else if(err){
@@ -57,8 +58,8 @@ adminProductRoutes.post('/upload',function(req,res){
         } catch (e){
             res.json({error_code:1,err_desc:"Corupted excel file"});
         }
-    }
-    })
+    //}
+    //})
     })
 
         
@@ -72,7 +73,7 @@ adminProductRoutes.get('/getProducts',verifyToken,(req,res)=>{
             res.json("token not valid or session timed out");
         }
         else{
-            nullChecker.check(req.body.products,res);
+            //nullChecker.check(req.body.products,res);
             productCrud.getProducts(req,res);
         }
     })

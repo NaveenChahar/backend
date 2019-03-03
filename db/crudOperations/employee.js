@@ -39,13 +39,13 @@ const empCrud={
                         res.json(err);            }   //error while uploading data to db
                     else{
                         console.log("record created");
-                        res.json('true');
+                        res.json({isPresent:false});
                     }    
                     
                     });
             }
             else{
-                res.json("record already exists");
+                res.json({isPresent:true});
             }     
         })
         

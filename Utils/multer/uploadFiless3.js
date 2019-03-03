@@ -5,9 +5,9 @@ const aws = require('aws-sdk');
 const multerS3 = require('multer-s3');
 
 aws.config.update({
-  secretAccessKey: "",
-  accessKeyId: "",
-  region: ""
+  secretAccessKey: "Mlm5ZL/+aP3FGiZI7+xJUw9QqFo1A+Q5H+RIppqv",
+  accessKeyId: "AKIAJOSUGEPTM5RV4W5Q",
+  region: "ap-south-1"
 });
 
 const s3 = new aws.S3();
@@ -68,7 +68,7 @@ function checkFileType(file,cb){
       files.mobile_no=req.body.mobile_no;
         cb(null,file.fieldname +' '+req.body.mobile_no+ path.extname(file.originalname));  }
   }),
-  limits:{fileSize:10000000},
+  limits:{fileSize:2000000},
   fileFilter:function(res,file,cb){
        checkFileType(file,cb)
    }

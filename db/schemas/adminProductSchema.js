@@ -23,16 +23,16 @@ const subProductSchema=new mongoose.Schema({
 });
 
 const productSchema=new mongoose.Schema({
-    productName:String,
     productId:String,
+    productName:String,
     subProducts:[
         subProductSchema
     ]
 });
 
 const subCatSchema=new mongoose.Schema({
-    subCategoryName:String,
-    subCategoryId:String,
+    subcategoryId:String,
+    subcategoryName:String,
     products:[
         productSchema
     ],

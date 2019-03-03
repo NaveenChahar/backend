@@ -1,6 +1,7 @@
 const express=require("express");
 const path=require("path");
 const cors=require("cors");
+const handleError=require("./Utils/errorHandler");
 const app=express();
 
 console.log('req is here');
@@ -27,6 +28,8 @@ app.use('/vendorProducts',vendorProductRoutes);                  //use routes
 
 
 app.use('**',express.static(path.join(__dirname, 'public/error.html')));
+
+app.use(handleError);
 
 
 app.listen(port);

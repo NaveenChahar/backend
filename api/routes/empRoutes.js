@@ -1,5 +1,6 @@
 const express=require('express');
 const empRoutes=express.Router();
+const logger=require('../../Utils/winstonLogger');
 const upload=require("../../Utils/multer/uploadFiless3");
 const multer=require("multer");
 const empCrud=require('../../db/crudOperations/employee');
@@ -107,10 +108,12 @@ empRoutes.post("/upload",(req,res)=>{
         upload.upload(req,res,function(err){
             if(err instanceof multer.MulterError){
                 console.log("hi"+err);
+                logger.debug('multer error occured',err);
                 res.status(500).json(err);
             }
             else if(err){
                 console.log(err);
+                logger.debug('some error occured',err);
                 res.status(500).json(err);
     
                 
@@ -118,6 +121,7 @@ empRoutes.post("/upload",(req,res)=>{
             
             console.log(req.files);
             console.log("trying to upload file");
+            logger.debug('trying to upload files');
             if(req.files!=null){
             upload.files.imageUrls.forEach(uploadObj=>{
             for(let ukeys in uploadObj){
@@ -133,6 +137,7 @@ empRoutes.post("/upload",(req,res)=>{
              
             }
             else{
+                logger.debug('error during file upload');
                 res.status(403).json({err:"couldnt upload files"});
             }
            // upload.files.id=req.files;

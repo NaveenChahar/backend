@@ -80,7 +80,7 @@ var empSchema=new Schema({
         policeVerification:{
             type:String,
         },
-        pancardPhoto:{
+        panCardPhoto:{
             type:String,
         },
         addressProof:{
