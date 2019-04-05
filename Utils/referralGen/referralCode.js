@@ -1,6 +1,6 @@
 const shortid = require('shortid');
 
-const idGen={
+const refCodeGen={
 
     nosplit(no){
     let strlength= no.length;
@@ -13,7 +13,7 @@ const idGen={
         let str;
         let random=shortid.generate()
 
-        str= random + this.nosplit(no);
+        str='JMN'+ random + this.nosplit(no);
     
 
     return str;
@@ -25,4 +25,4 @@ const idGen={
 }
 
 
-module.exports=idGen;
+module.exports=refCodeGen;

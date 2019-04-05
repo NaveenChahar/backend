@@ -17,12 +17,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 const empRoutes=require('./api/routes/empRoutes');   //require routes
-const adminProductRoutes=require('./api/routes/adminProductRoutes');
+const adminRoutes=require('./api/routes/adminRoutes');
 const vendorProductRoutes=require('./api/routes/vendorProductsRoutes');
+const productRoutes=require('./api/routes/productRoutes');
 
 
 app.use('/employee',empRoutes); 
-app.use('/adminProducts',adminProductRoutes);   
+app.use('/admin',adminRoutes);  
+app.use('/products',productRoutes); 
 app.use('/vendorProducts',vendorProductRoutes);                  //use routes
 //app.use('/user');
 

@@ -15,6 +15,8 @@ const object={
     qualification:null,
     gender:null,
     referralCode:null,  
+    selfReferralCode:null,
+    isVerified:false,
     date_of_birth:null,  
     nominee:null,
     nomineeRel:null,
