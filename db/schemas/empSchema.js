@@ -32,6 +32,12 @@ var empSchema=new Schema({
 
     gender:{
         type: String
+    },
+    selfReferralCode:{
+        type:String
+    },
+    isVerified:{
+        type:Boolean
     }
     ,
     referralCode:{
@@ -80,7 +86,7 @@ var empSchema=new Schema({
         policeVerification:{
             type:String,
         },
-        panCardPhoto:{
+        pancardPhoto:{
             type:String,
         },
         addressProof:{
@@ -99,10 +105,5 @@ var empSchema=new Schema({
     
 
 });
-
-
-
-
-
 
 module.exports=mongoose.model("employees",empSchema);

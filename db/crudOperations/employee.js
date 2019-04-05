@@ -2,6 +2,9 @@ const Emp=require("../schemas/empSchema");
 const Uid=require("uuid/v1");
 const fs=require("fs");
 const path=require("path");
+const mailUser=require('../../Utils/nodemailer');
+const passwordEncryptor=require('../../Utils/passwordEncryptor')
+
 
 
 // console.log(path.join(__dirname,'../../docUploads/policeVerification'));
@@ -12,12 +15,14 @@ const empCrud={
     doLogin(req,res,object){
         
         console.log('came here later');
-        Emp.findOne(object,(err,data)=>{
+        Emp.findOne(object.email,(err,data)=>{
             if(err){
                 res.json(err);
             }
             else{
+                if(passwordEncryptor.verifyPassword(object.password,data.password)==true){
                 res.json(data);
+                }
             }
         });
     },
@@ -40,6 +45,9 @@ const empCrud={
                     else{
                         console.log("record created");
                         res.json({isPresent:false});
+                        mailUser(object.email,object.name);
+
+
                     }    
                     
                     });
