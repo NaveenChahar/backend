@@ -6,16 +6,14 @@ const multer=require("multer");
 const empCrud=require('../../db/crudOperations/employee');
 const idGen=require('../../Utils/idGenerator/idGen');
 const nullChecker=require('../../Utils/nullChecker');
+const refCodeGen=require('../../Utils/referralGen/referralCode');
+const passwordEncryptor=require('../../Utils/passwordEncryptor');
 
 
  
 //var empCrud=require("../../db/crudOperations/employee");
 empRoutes.post('/login',(req,res)=>{
-
-        console.log(req.body.name);
-        var name=req.body.name;
-        var gender=req.body.gender;
-        var object={name,gender};
+        var object={'email':req.body.email,'password':req.body.password};
 
         empCrud.doLogin(req,res,object);
 
@@ -31,7 +29,7 @@ empRoutes.post('/register',(req,res)=>{
         nullChecker.check(req.body.name,res);
         object.name=req.body.name;
         nullChecker.check(req.body.password,res);
-        object.password=req.body.password;
+        object.password=passwordEncryptor.generatePassHash(req.body.password,10)
 
         /*object.address[0].fulladdress=req.body.address.fulladdress;
         object.address[0].street=req.body.address.street;
@@ -49,9 +47,10 @@ empRoutes.post('/register',(req,res)=>{
                 }
             }
         }
-        object.email=req.body.email;
         nullChecker.check(req.body.mobile_no,res);
         object.mobile_no=req.body.mobile_no;
+        object.selfReferralCode=refCodeGen.refCodeGen(req.body.mobile_no);
+        object.email=req.body.email;
         object.qualification=req.body.qualification;
         object.referralCode=req.body.refferalCode;
         object.gender=req.body.gender;
@@ -142,10 +141,14 @@ empRoutes.post("/upload",(req,res)=>{
             }
            // upload.files.id=req.files;
            upload.files.id=idGen.idgenerator(req.body.mobile_no);
+           if(upload.files.id==null){
+               res.status(500).json("please provide the mobile no");
+           }
+           else{
            console.log(upload.files);
            
             res.json(upload.files);
-            
+           }            
 
     
      

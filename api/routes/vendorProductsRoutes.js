@@ -13,8 +13,14 @@ vendorproductRoutes.get('/manualUpload',(req,res)=>{
 
 })
 
+vendorproductRoutes.post('/searchProduct',(req,res)=>{
+   console.log(req.body);
+      productCrud.searchProduct(req,res,req.body.compareString);
 
-vendorproductRoutes.get('/excelUpload',(req,res)=>{
+})
+
+
+vendorproductRoutes.post('/excelUpload',(req,res)=>{
 
     singleUpload(req,res,function(err){
         if(err instanceof multer.MulterError){
