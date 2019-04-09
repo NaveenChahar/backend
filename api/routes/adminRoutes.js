@@ -9,16 +9,32 @@ const nullChecker=require('../../Utils/nullChecker');
 
 const upload=require('../../Utils/multer/commonExcelUpload');    //requiring multer for excel upload
 const upload2=require('../../Utils/multer/productImagess3');   //requiring multer s3 for image upload
-const singleUpload=upload.single('productupload');        
 const securekey ='Imsecure';          //secret key of webtokens
 const productCrud=require('../../db/crudOperations/Product'); 
 const adminCrud=require('../../db/crudOperations/adminCrud');
 const s3=require('../../Utils/multer/getImageFiles');
+const singleUpload=upload.fields([
+    {
+      name:'categories'
+    },
+    {
+      name:'subcategories'
+    },                                 //keys of files incoming
+    {
+      name:'products'
+    },
+    {
+      name:'subproducts'
+    },{
+        name:'priceAndAmount'
+    }
+    ]);        
 
 adminRoutes.post('/upload',function(req,res){
     /* dont mess with multer the req above and below are not even same*/
-    var exceltojson; //Initialization
-    singleUpload(req,res,function(err){
+    var xlsxj; //Initialization
+   
+    singleUpload(req,res,async function(err){
         //jwt.verify(req.body.idToken,securekey,(error,authData)=>{     //checking if token is present or not
             //if(error){
             //    res.json("session timed out");
@@ -30,25 +46,112 @@ adminRoutes.post('/upload',function(req,res){
             //console.log(req.file)
             res.json(err);    
         }
-        console.log(req.file);
-        if(req.file.originalname.split('.')[req.file.originalname.split('.').length-1] === 'xlsx'){
-            exceltojson = xlsxtojson;
+        //console.log(req.files);
+        if(req.files.categories[0].originalname.split('.')[req.files.categories[0].originalname.split('.').length-1] === 'xlsx'){
+            xlsxj = xlsxtojson;
         } else {
-            exceltojson = xlstojson;
+            xlsxj = xlstojson;
         }
 
         try {
-            exceltojson({
-                input: req.file.path,
-                output: null, //since we don't need output.json
+            var categories=[];
+            var subcategory=[];
+            var products=[];
+            var subProducts=[];
+            var priceAndAmount=[];
+            for(let key in req.files){
+                //console.log(key);
+            var pr=await new Promise(function(resolve,reject){
+            xlsxj({
+                input: req.files[key][0].path, 
+                output: null,
                 lowerCaseHeaders:true
             }, function(err,result){
                 if(err) {
-                    return res.json({error_code:1,err_desc:err, data: null});
+                    // return new Promise(function(resolve,reject){
+                    //     reject({msg:'some error occured'});
+                    // })
+                    reject('some error occured');
+                    res.json({error_code:1,err_desc:err, data: null});
                 } 
                 if(result!=null){
                    // productCrud.uploadProducts(req,res,result);
                     console.log(result);
+                    if(key=='categories'){
+                        
+                        for(let category of result){
+                            let category1={
+                                categoryId:null,
+                                categoryName:null,
+                                childIds:[],
+                                subcategory:[]
+                            }
+                            category1.categoryId=category.categoryid;           //converted string into array and
+                            category1.categoryName=category.categoryname;  
+                            console.log('we were here');     //defined structure
+                            category1.childIds=convertArray(category.childids);
+                            categories.push(category1);
+                            //console.log(categories);
+                        }
+                    }
+                    if(key=='subcategories'){
+                        
+                        for(let subcat of result){
+                            let subcategory1={
+                                subcategoryId:null,
+                                subcategoryName:null,
+                                childIds:[],
+                                products:[]
+                            }
+                            subcategory1.subcategoryId=subcat.subcategoryid;           //converted string into array and
+                            subcategory1.subcategoryName=subcat.subcategoryname;       //defined structure
+                            subcategory1.childIds=convertArray(subcat.childids);
+                            subcategory.push(subcategory1);
+                        }
+                    }
+                    if(key=='products'){
+                        
+                        for(let product of result){
+                            let product1={
+                                productId:null,
+                                productName:null,
+                                childIds:[],
+                                subProducts:[]
+                            }
+                            product1.productId=product.productid;           //converted string into array and
+                            product1.productName=product.productname;       //defined structure
+                            product1.childIds=convertArray(product.childids);
+                            products.push(product1);
+                        }
+                    }
+                    if(key=='subproducts'){
+                        
+                        for(let subproduct of result){
+                            let subproduct1={
+                                subproductId:null,
+                                subproductName:null,
+                                info:{
+                                    description:null,
+                                    benefitsAndUses:null,
+                                    priceAndAmount:[]
+                                },
+                            }
+                            subproduct1.subproductId=subproduct.subproductid;           //converted string into array and
+                            subproduct1.subproductName=subproduct.subproductname;       //defined structure
+                            subproduct1.info.description=subproduct.description;
+                            subproduct1.info.benefitsAndUses=subproduct.benefitsanduses;
+                            subProducts.push(subproduct1);
+                        }
+                    }
+                    if(key=='priceAndAmount'){
+                        priceAndAmount=result;
+                    }
+                    // return new Promise(function(resolve,reject){
+                    //     console.log('returning promise');
+                    //     resolve({msg: result});
+                    // })
+                    resolve('ok');
+
                 }
                 //productCrud.uploadProducts(req,res,obj);
                 // result.forEach(obj=>{
@@ -57,6 +160,28 @@ adminRoutes.post('/upload',function(req,res){
                 
                 //res.json({error_code:0,err_desc:null, data: result});
             });
+            })
+            //await wait(5000);
+
+            }
+            if(pr){
+            console.log('join occured');
+            //console.log(categories);
+            //console.log(subcategory);
+            //console.log(products);
+            //console.log(subProducts);
+            //console.log(priceAndAmount);
+            subProducts=joinSubproducts(subProducts,priceAndAmount);
+            //console.log(subProducts);
+            products=joinProducts(products,subProducts);
+            //console.log(products);
+            subcategory=joinSubcategory(subcategory,products);
+            var finalJson=joinExcelData(categories,subcategory);
+            console.log(finalJson);
+            productCrud.uploadProducts(req,res,finalJson);
+            }
+            
+
         } catch (e){
             res.json({error_code:1,err_desc:"Corupted excel file"});
         }
@@ -181,7 +306,74 @@ function verifyToken(req,res,next){               //checking for webtoken in the
     }
 }
 
+function wait(ms) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        console.log("Done waiting");
+        resolve(ms)
+      }, ms )
+    })
+  } 
 
+function convertArray(string){
+    var array=[];
+    array=string.split(' ');           //converting combined ids into array of ids
+    console.log(array);
+    return array;
+}
+
+function joinExcelData(categories,subcategory){
+    var finalJson=[];
+    for(let category of categories){
+        for(let subcatid of category.childIds){
+            for(let subcat of subcategory){
+                if(subcatid==subcat.subcategoryId){
+                    category.subcategory.push(subcat);
+                }
+
+            }
+        }
+        finalJson.push(category);
+    }
+    return finalJson;
+}
+function joinSubproducts(subProducts,priceAndAmount){
+    for(subproduct of subProducts){
+        for(pna of priceAndAmount){
+            if(pna.subproductid==subproduct.subproductId){
+                subproduct.info.priceAndAmount.push(pna);
+            }
+        }
+    }
+    return subProducts;
+}
+function joinProducts(products,subProducts){
+    console.log('trying to generate')
+    for(let product of products){
+        for(let subproductId of product.childIds){
+            for(let subProduct of subProducts){
+                if(subproductId==subProduct.subproductId){
+                    product.subProducts.push(subProduct);
+                }
+            }
+        }
+    }
+
+    return products;
+}
+function joinSubcategory(subcategory,products){
+    for(let subcat of subcategory){
+        for(let productId of subcat.childIds){
+            for(let product of products){
+                if(productId==product.productId){
+                    subcat.products.push(product);
+                }
+            }
+        }
+    }
+
+    return subcategory;
+}
 
 
 
