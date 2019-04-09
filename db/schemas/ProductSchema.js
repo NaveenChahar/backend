@@ -25,6 +25,7 @@ const subProductSchema=new mongoose.Schema({
 const productSchema=new mongoose.Schema({
     productId:String,
     productName:String,
+    childIds:[],
     subProducts:[
         subProductSchema
     ]
@@ -33,6 +34,7 @@ const productSchema=new mongoose.Schema({
 const subCatSchema=new mongoose.Schema({
     subcategoryId:String,
     subcategoryName:String,
+    childIds:[],
     products:[
         productSchema
     ],
@@ -41,6 +43,7 @@ const subCatSchema=new mongoose.Schema({
 const ProductSchema=new mongoose.Schema({
     categoryId:String,
     categoryName:String,
+    childIds:[],
     subcategory:[
         subCatSchema
     ],

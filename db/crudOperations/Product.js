@@ -1684,6 +1684,7 @@ const ProductCrud={
             for(let obj of categorylist){
                 var halfobj=new Products.Products({categoryId:obj.categoryId,
                             categoryName:obj.categoryName,
+                            childIds:obj.childIds,
                             subcategory:[]
                         });
                         console.log("we were here");
@@ -1698,6 +1699,7 @@ const ProductCrud={
                             var halfobj1=new Products.SubCat({
                                           subcategoryId:obj1.subcategoryId,
                                           subcategoryName:obj1.subcategoryName,
+                                          childIds:obj1.childIds,
                                           products:[]});
                             record1.subcategory.push(halfobj1);
                             //var promise1=await record1.save();
@@ -1709,6 +1711,7 @@ const ProductCrud={
                                         var halfobj2=new Products.Product1({
                                                       productId:obj2.productId,
                                                       productName:obj2.productName,
+                                                      childIds:obj2.childIds,
                                                       subProducts:[]});
                                                       console.log(subcatIndex);
                                         record1.subcategory[subcatIndex].products.push(halfobj2);
@@ -1840,7 +1843,7 @@ const ProductCrud={
                 res.json("some error occures");
             }
             else{
-                console.log(products);
+                //console.log(products);
                 //logger.debug(products);
                 var subcatIndex=0;
                 var productIndex=0;
@@ -1848,6 +1851,7 @@ const ProductCrud={
                 for(let obj of products){
                     var halfobj={categoryId:obj.categoryId,
                             categoryName:obj.categoryName,
+                            childIds:obj.childIds,
                             subcategory:[]
                         };
                     subcatIndex=0;
@@ -1855,6 +1859,7 @@ const ProductCrud={
                         var halfobj1={
                                         subcategoryId:obj1.subcategoryId,
                                           subcategoryName:obj1.subcategoryName,
+                                          childIds:obj1.childIds,
                                           products:[]};
                         halfobj.subcategory.push(halfobj1);
                         productIndex=0;
@@ -1862,6 +1867,7 @@ const ProductCrud={
                             var halfobj2={
                                             productId:obj2.productId,
                                             productName:obj2.productName,
+                                            childIds:obj2.childIds,
                                             subProducts:[]};
                                             //console.log(subcatIndex);
                             halfobj.subcategory[subcatIndex].products.push(halfobj2);
@@ -1874,7 +1880,10 @@ const ProductCrud={
                                 var imageArray=[];
                                 if(obj3.imageUrls){
                                 for(let obj5 of obj3.imageUrls){
-                                    imageArray.push(obj5);
+                                    let obj6={
+                                        uri: obj5.uri
+                                    }
+                                    imageArray.push(obj6);
                                 }}
                                 var halfobj3={
                                     subproductId:obj3.subproductId,

@@ -4,7 +4,7 @@ const empCrud= require('../schemas/empSchema');
 
 const adminCrud={
 async login(res,object){
-    var data=await admin.findOne({'name':object.name},function(err,user){
+    var data=await admin.findOne({'name':object.name,'id':object.id},function(err,user){
       console.log('we were here',user);
         if(err){
             data=null;
@@ -24,7 +24,7 @@ empCrud.find({isVerified:false},(err,users)=>{
 res.json({'error':err});
   }
   else{
-      return users;
+      
       res.json({'users':users});
   }
 })
