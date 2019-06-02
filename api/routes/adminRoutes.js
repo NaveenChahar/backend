@@ -12,8 +12,10 @@ const upload2=require('../../Utils/multer/productImagess3');   //requiring multe
 const securekey ='Imsecure';          //secret key of webtokens
 const productCrud=require('../../db/crudOperations/Product'); 
 const adminCrud=require('../../db/crudOperations/adminCrud');
+const addressCrud=require('../../db/crudOperations/addressCrud');
 const s3=require('../../Utils/multer/getImageFiles');
-const singleUpload=upload.fields([
+const singleUpload=upload.single('addresses');
+const multipleUpload=upload.fields([
     {
       name:'categories'
     },
@@ -34,7 +36,7 @@ adminRoutes.post('/upload',function(req,res){
     /* dont mess with multer the req above and below are not even same*/
     var xlsxj; //Initialization
    
-    singleUpload(req,res,async function(err){
+    multipleUpload(req,res,async function(err){
         //jwt.verify(req.body.idToken,securekey,(error,authData)=>{     //checking if token is present or not
             //if(error){
             //    res.json("session timed out");
@@ -239,57 +241,156 @@ adminRoutes.post('/editCategoryList',verifyToken,(req,res)=>{
 })
 
 adminRoutes.post('/imageUpload',(req,res)=>{
-    
-            upload2(req,res,function(err){
-                jwt.verify(req.body.idToken,securekey,(error,authData)=>{
-                    if(error){
-                        res.json("token not valid or session timed out");
-                    }
-                    else{
-                    if(err){
-                    res.json("multer s3 error");
-                    }
-                    else{
-                    //push url to db
-                    nullChecker.check(req.files,res);
-                    var obj={"uri":req.files.location};
-                    productCrud.imageUpload(req,res,obj);
-                }
+  
+    upload2(req,res,function(err){
+        jwt.verify(req.body.idToken,securekey,(error,authData)=>{
+            
+            if(error){
+                res.status(401).json("Session TimeOut ,Please login again");
             }
-                })
-            })
+            else{
+
+   //    console.log(req.body,req.file,req.body.files);
+            //push url to db
+
+            nullChecker.check(req.file,res);
+            var obj={"uri":req.file.location};
+            productCrud.imageUpload(req,res,obj);
         
+            }})
+        })
     
+        
 })
 
+adminRoutes.post('/imageDelete',verifyToken,(req,res)=>{
+    console.log(req.body)
+        jwt.verify(req.token,securekey,(error,authData)=>{
+            
+            if(error){
+                res.status(401).json("Session TimeOut ,Please login again");
+            }
+            else{
 
-adminRoutes.post('/login',function(req,res){
-    var adminData=adminCrud.login(res,{'id':req.body.id, 'name':req.body.name, 'password':req.body.password});
+          console.log(req.body)
+            productCrud.deleteImageBackend(req,res);
+        
+            }})
+        
+    
+
+
+})
+
+adminRoutes.post('/login',async function(req,res){
+    var adminData= await adminCrud.login(res,{'id':req.body.id, 'name':req.body.name, 'password':req.body.password});
     console.log(adminData);
    if(adminData!=null){
-    console.log('we were here 1');
         jwt.sign({adminData},securekey,{expiresIn:'3000s'},(err,token)=>{ 
-            console.log(token);            //token is generated after checking the presence of user
+                     //token is generated after checking the presence of user
         res.json({
             token:token
         })
     })
 }})
-adminRoutes.get('/getUnverifiedEmployee',(req,res)=>{
+adminRoutes.get('/getUnverifiedEmployee',verifyToken,(req,res)=>{
+    console.log('i  m unverifiied');
+    jwt.verify(req.token,securekey,(error,authData)=>{
+            
+        if(error){
+            res.status(401).json("Session TimeOut ,Please login again");
+        }
+        else{
+
+   
     adminCrud.getUnverifiedEmployees(res);
+        }})
 })
 
 
-adminRoutes.get('/getVerifiedEmployee',(req,res)=>{
-    adminCrud.getVerifiedEmployees(res);
+adminRoutes.get('/getVerifiedEmployee',verifyToken,(req,res)=>{
+    console.log('i m here verify')
+    jwt.verify(req.token,securekey,(error,authData)=>{
+            
+        if(error){
+            res.status(401).json("Session TimeOut ,Please login again");
+        }
+        else{
+
+    adminCrud.getVerifiedEmployees(res);}})
 })
 
-adminRoutes.post('/verifyUser',(req,res)=>{
-    adminCrud.verifyEmployee(req.body.id,res);
+adminRoutes.post('/verifyUser',verifyToken,(req,res)=>{
+    jwt.verify(req.token,securekey,(error,authData)=>{
+            
+        if(error){
+            res.status(401).json("Session TimeOut ,Please login again");
+        }
+        else{
+
+    adminCrud.verifyEmployee(req.body.id,res);}})
 })
-adminRoutes.post('/unVerifyUser',(req,res)=>{
-    adminCrud.unVerifyEmployee(req.body.id,res);
+adminRoutes.post('/unVerifyUser',verifyToken,(req,res)=>{
+    jwt.verify(req.token,securekey,(error,authData)=>{
+            
+        if(error){
+            res.status(401).json("Session TimeOut ,Please login again");
+        }
+        else{
+
+    adminCrud.unVerifyEmployee(req.body.id,res);}})
 })
+
+adminRoutes.post('/bulkAddUpload',(req,res)=>{
+    singleUpload(req,res,function(err){
+        if(err instanceof multer.MulterError){
+            console.log(err);
+        }else if(err){
+            //console.log(req.file)
+            res.json(err);    
+        }
+        //console.log(req);
+        if(req.file.originalname.split('.')[req.file.originalname.split('.').length-1] === 'xlsx'){
+            exceltojson = xlsxtojson;
+        } else {
+            exceltojson = xlstojson;
+        }
+
+        try {
+            exceltojson({
+                input: req.file.path,
+                output: null, //since we don't need output.json
+                lowerCaseHeaders:true
+            }, function(err,result){
+                if(err) {
+                    return res.json({error_code:1,err_desc:err, data: null});
+                } 
+                console.log(result);
+                //do whatever you want
+                for(let data of result){
+
+                }
+                res.json({error_code:0,err_desc:null, data: result});
+            });
+        } catch (e){
+            logger.debug('some error occured during adding new address inside multer');
+            res.json({error_code:1,err_desc:"Corupted excel file"});
+        }
+    })
+})
+
+adminRoutes.post('/singleAddCrud',verifyToken,(req,res)=>{
+    if(req.body.optype=='add'){
+
+    }
+    else if(req.body.optype=='delete'){
+
+    }
+    else if(req.body.optype=='edit'){
+
+    }
+})
+
 
 
 function verifyToken(req,res,next){               //checking for webtoken in the header of req and filling it into req.token
