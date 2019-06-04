@@ -2,6 +2,7 @@ const express=require('express');
 const adminRoutes=express.Router();
 const logger=require('../../Utils/winstonLogger');
 const jwt=require('jsonwebtoken');
+const idGen=require('../../Utils/idGenerator/idGen');
 const multer=require('multer');
 const xlstojson = require("xls-to-json-lc");
 const xlsxtojson = require("xlsx-to-json-lc");
@@ -13,8 +14,12 @@ const securekey ='Imsecure';          //secret key of webtokens
 const productCrud=require('../../db/crudOperations/Product'); 
 const adminCrud=require('../../db/crudOperations/adminCrud');
 const addressCrud=require('../../db/crudOperations/addressCrud');
+const aboutUsOperations=require('../../db/crudOperations/aboutUsCrud');
+const addressModel=require('../../models/addressModel');
+const aboutObject=require('../../models/setterGetter/aboutUs');
+const SubTitleModel=require('../../models/subTitleModel');
 const s3=require('../../Utils/multer/getImageFiles');
-const singleUpload=upload.single('addresses');
+const singleUpload=upload.single('address');
 const multipleUpload=upload.fields([
     {
       name:'categories'
@@ -340,7 +345,7 @@ adminRoutes.post('/unVerifyUser',verifyToken,(req,res)=>{
 
     adminCrud.unVerifyEmployee(req.body.id,res);}})
 })
-
+//operations for address management
 adminRoutes.post('/bulkAddUpload',(req,res)=>{
     singleUpload(req,res,function(err){
         if(err instanceof multer.MulterError){
@@ -368,7 +373,14 @@ adminRoutes.post('/bulkAddUpload',(req,res)=>{
                 console.log(result);
                 //do whatever you want
                 for(let data of result){
-
+                    let object={
+                        city:data.city,
+                        areaId:idGen.idgenerator(data.pincode),
+                        areaName:data.areaname,
+                        pincode:data.pincode,
+                        status:data.status
+                    }
+                    addressCrud.addAddress(object);
                 }
                 res.json({error_code:0,err_desc:null, data: result});
             });
@@ -381,14 +393,59 @@ adminRoutes.post('/bulkAddUpload',(req,res)=>{
 
 adminRoutes.post('/singleAddCrud',verifyToken,(req,res)=>{
     if(req.body.optype=='add'){
-
+        // let object={
+        //     city:req.body.city,
+        //     areaId:idGen.idgenerator(req.body.pincode),
+        //     areaName:req.body.areaName,
+        //     pincode:req.body.pincode,
+        //     status:req.body.status
+        // }
+        let object=new addressModel(req.body.city,idGen.idgenerator(req.body.pincode),
+                        req.body.areaName,req.body.pincode,req.body.status);
+        addressCrud.addAddress(object);
     }
     else if(req.body.optype=='delete'){
-
+       
+        let object=new addressModel(req.body.city,req.body.areaId,
+                        req.body.areaName,req.body.pincode,req.body.status)
+        addressCrud.deleteAddress(object);
     }
     else if(req.body.optype=='edit'){
 
+        let object=new addressModel(req.body.city,req.body.areaId,
+                        req.body.areaName,req.body.pincode,req.body.status)
+        addressCrud.updateAddress(object);
     }
+})
+//footer data management by admin
+adminRoutes.post('/saveabout',(req,res)=> {
+    console.log(req.body);
+    // for(let key in aboutObject) {
+            // if(key=="aboutTitle"){
+            let aboutTitle=aboutObject.aboutTitle;
+            aboutTitle.titleName=req.body.titleName;
+            let titleParagraph=aboutTitle.titleParagraph[0];
+            titleParagraph.paragraph=req.body.titleParagraph.paragraph;
+            titleParagraph.lists=req.body.titleParagraph.lists;
+            let aboutSubTitle=aboutObject.aboutSubTitle;
+            if(aboutSubTitle.length>0) {
+                aboutSubTitle.length=0;
+            }
+            let bodyAboutSubTitle=req.body.aboutSubTitle;
+                var subTitleName= bodyAboutSubTitle.subTitleName;
+                var subTitleParagraphs= bodyAboutSubTitle.subTitleParagraphs;
+                var objectSub=new SubTitleModel(subTitleName,subTitleParagraphs);
+                aboutSubTitle.push(objectSub);
+            
+            // break;
+        // }
+    // }
+    aboutUsOperations.uploadData(aboutObject,res);
+    // aboutSubTitle.length=0;
+});
+adminRoutes.get('/getaboutdata',(req,res)=> {
+    //console.log("Inside GetAbout")
+    aboutUsOperations.getAboutData(res);
 })
 
 
