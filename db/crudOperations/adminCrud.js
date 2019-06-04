@@ -4,20 +4,16 @@ const empCrud= require('../schemas/empSchema');
 
 const adminCrud={
 async login(res,object){
-    var data=await admin.findOne({'name':object.name,'id':object.id},function(err,user){
-      console.log('we were here',user);
-        if(err){
-            data=null;
-        }else if(user!=null){
-        
+    var user=await admin.findOne({'id':object.id,'name':object.name})
+       if(user!=null){
          if(object.password == user.password){
-          console.log('we were here');
-         data=user;
-        }}
-       
-    })
-    return data;
-},
+          console.log('we were here 222');
+    return new Promise((resolve,reject)=>{
+      resolve(user);
+    
+    }) 
+}}},
+
 getUnverifiedEmployees(res){
 empCrud.find({isVerified:false},(err,users)=>{
   if(err){
