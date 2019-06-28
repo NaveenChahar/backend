@@ -191,7 +191,12 @@ const ProductCrud={
 
     editProducts(req,res){
         Products.SubProduct.findOne({subproductId:req.body.stackTrace[3]},(error,object)=>{
-            subproduct.info.description=req.body.description;
+            if(err){
+                console.log(error);
+                res.status(500).json('some error')
+            }
+            else if(object!=null){
+                subproduct.info.description=req.body.description;
             subproduct.info.benefitsAndUses=req.body.benefitsAndUses;
             subproduct.info.priceAndAmount=req.body.priceAndAmount;
             object.save((err)=>{
@@ -204,6 +209,11 @@ const ProductCrud={
                     res.json({'isPushed':true});
                 }
             })
+            }
+            else{
+                res.json('product not found');
+            }
+            
         })
     },
 
@@ -238,17 +248,27 @@ const ProductCrud={
         // })
 
         Products.SubProduct.findOne({subproductId:req.body.stackTrace[3]},(error,object)=>{
-            object.imageUrls.push(result);
-            object.save((err)=>{
-                if(err){
-                    console.log("some error occured during database query");
-                }
-                else{
-                    //res.json("image uploaded successfully");
-                    console.log("we got this");
-                    res.json({'isPushed':true});
-                }
-            })
+            if(err){
+                console.log(error);
+                res.status(500).json('some error')
+            }
+            else if(object!=null){
+                object.imageUrls.push(result);
+                object.save((err)=>{
+                    if(err){
+                        console.log("some error occured during database query");
+                    }
+                    else{
+                        //res.json("image uploaded successfully");
+                        console.log("we got this");
+                        res.json({'isPushed':true});
+                    }
+                })
+            }
+            else{
+                res.json('product not found');
+            }
+            
         })
     },
     deleteImageBackend(req,res){
@@ -283,7 +303,12 @@ const ProductCrud={
         // })
 
         Products.SubProduct.findOne({subproductId:req.body.stackTrace[3]},(error,object)=>{
-            object.imageUrls.push(result);
+            if(err){
+                console.log(error);
+                res.status(500).json('some error')
+            }
+            else if(object!=null){
+                object.imageUrls.push(result);
             object.save((err)=>{
                 if(err){
                     console.log("some error occured during database query");
@@ -296,6 +321,10 @@ const ProductCrud={
                 
                 }
             })
+            }
+            else{
+                res.json('product not found');
+            }
         })
 
 
@@ -495,6 +524,7 @@ const ProductCrud={
         
     },
 
+    //not working
     removeIdV(dbArray) {
         var array=[];
         for(let obj of dbArray){
