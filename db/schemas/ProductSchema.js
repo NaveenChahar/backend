@@ -3,22 +3,33 @@ const connection=require("../connection");
 
 const Schema=mongoose.Schema;
 
+const priceAndAmountSchema=new mongoose.Schema({
+    
+    amount:String,
+    suffix:String,
+    price:String,
+    discount:String,
+    instock:String
+
+})
 
 const subProductSchema=new mongoose.Schema({
     subproductId:String,
     subproductName:String,
+    productId:String,
+    subcategoryId:String,
+    categoryId:String,
     info:{
+        brand:String,
         description:String,
         benefitsAndUses:String,
-        priceAndAmount:[{
-            amount:String,
-            suffix:String,
-            price:String,
-            discount:String
-        }],
+        priceAndAmount:[
+            priceAndAmountSchema
+        ],
     },
     imageUrls:[{
-        uri:String
+        uri:String,
+        key:String
     }]
 });
 
@@ -52,9 +63,10 @@ const ProductSchema=new mongoose.Schema({
 
 
 module.exports={
-    Products: mongoose.model("products",ProductSchema),
-    SubCat: mongoose.model("subcat",subCatSchema),
-    Product1: mongoose.model("pro",productSchema),
-    SubProduct: mongoose.model("subProduct",subProductSchema)
+    Products: mongoose.model("samplecategories1",ProductSchema),
+    SubCat: mongoose.model("samplesubcat",subCatSchema),
+    Product1: mongoose.model("samplepro",productSchema),
+    SubProduct: mongoose.model("samplesubProduct",subProductSchema),
+    PriceAndAmount:mongoose.model("samplepriceAndAmount",priceAndAmountSchema)
 
 }
