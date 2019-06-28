@@ -7,6 +7,8 @@ const multer=require('multer');
 const xlstojson = require("xls-to-json-lc");
 const xlsxtojson = require("xlsx-to-json-lc");
 const nullChecker=require('../../Utils/nullChecker');
+const joins=require('../../Utils/productJoins');
+//const async=require('async_hooks')
 
 const upload=require('../../Utils/multer/commonExcelUpload');    //requiring multer for excel upload
 const upload2=require('../../Utils/multer/productImagess3');   //requiring multer s3 for image upload
@@ -47,7 +49,7 @@ adminRoutes.post('/upload',function(req,res){
             //    res.json("session timed out");
             //}
             //else{
-        if(err instanceof multer.MulterError){
+        if(err instanceof multer.MulterError){  
             console.log(err);
         }else if(err){
             //console.log(req.file)
@@ -83,7 +85,7 @@ adminRoutes.post('/upload',function(req,res){
                 } 
                 if(result!=null){
                    // productCrud.uploadProducts(req,res,result);
-                    console.log(result);
+                    //console.log(result);
                     if(key=='categories'){
                         
                         for(let category of result){
@@ -98,7 +100,7 @@ adminRoutes.post('/upload',function(req,res){
                             console.log('we were here');     //defined structure
                             category1.childIds=convertArray(category.childids);
                             categories.push(category1);
-                            //console.log(categories);
+                            console.log(categories);
                         }
                     }
                     if(key=='subcategories'){
@@ -137,6 +139,8 @@ adminRoutes.post('/upload',function(req,res){
                             let subproduct1={
                                 subproductId:null,
                                 subproductName:null,
+                                subcategoryId:null,
+                                productId:null,
                                 info:{
                                     description:null,
                                     benefitsAndUses:null,
@@ -160,6 +164,10 @@ adminRoutes.post('/upload',function(req,res){
                     resolve('ok');
 
                 }
+                else{
+                    reject('some error occured');
+                }
+
                 //productCrud.uploadProducts(req,res,obj);
                 // result.forEach(obj=>{
                 //     productCrud.uploadProducts(req,res,obj);                         //pushing objects to db after traversing
@@ -172,20 +180,26 @@ adminRoutes.post('/upload',function(req,res){
 
             }
             if(pr){
-            console.log('join occured');
+
+            // async.waterfall([
+                
+            // ])
+            //console.log('join occured');
             //console.log(categories);
             //console.log(subcategory);
             //console.log(products);
             //console.log(subProducts);
             //console.log(priceAndAmount);
-            subProducts=joinSubproducts(subProducts,priceAndAmount);
+            subProducts=joins.joinSubproducts(subProducts,priceAndAmount);
             //console.log(subProducts);
-            products=joinProducts(products,subProducts);
+            //products=joinProducts(products,subProducts);
             //console.log(products);
-            subcategory=joinSubcategory(subcategory,products);
-            var finalJson=joinExcelData(categories,subcategory);
-            console.log(finalJson);
-            productCrud.uploadProducts(req,res,finalJson);
+            //subcategory=joinSubcategory(subcategory,products);
+            //var finalJson=joinExcelData(categories,subcategory);
+            //console.log(finalJson);
+            //console.log("we were here1")
+            subProducts=joins.createFieldsInSubProduct(subcategory,products,subProducts);
+            productCrud.uploadProducts(req,res,categories,subcategory,products,subProducts);
             }
             
 
@@ -240,7 +254,14 @@ adminRoutes.post('/editCategoryList',verifyToken,(req,res)=>{
         }
         else{
             nullChecker.check(req.body.categorylist,res);
-            productCrud.uploadProducts(req,res,req.body.categorylist);
+            var categories=[];
+            var subcategory=[];
+            var products=[];
+            var subProducts=[];
+            for(let category in categorylist){
+                //do this
+            }
+            productCrud.uploadProducts(req,res,categories,subcategory,products,subProducts);
         }
     })
 })
@@ -476,62 +497,11 @@ function wait(ms) {
 function convertArray(string){
     var array=[];
     array=string.split(' ');           //converting combined ids into array of ids
-    console.log(array);
+    //console.log(array);
     return array;
 }
 
-function joinExcelData(categories,subcategory){
-    var finalJson=[];
-    for(let category of categories){
-        for(let subcatid of category.childIds){
-            for(let subcat of subcategory){
-                if(subcatid==subcat.subcategoryId){
-                    category.subcategory.push(subcat);
-                }
 
-            }
-        }
-        finalJson.push(category);
-    }
-    return finalJson;
-}
-function joinSubproducts(subProducts,priceAndAmount){
-    for(subproduct of subProducts){
-        for(pna of priceAndAmount){
-            if(pna.subproductid==subproduct.subproductId){
-                subproduct.info.priceAndAmount.push(pna);
-            }
-        }
-    }
-    return subProducts;
-}
-function joinProducts(products,subProducts){
-    console.log('trying to generate')
-    for(let product of products){
-        for(let subproductId of product.childIds){
-            for(let subProduct of subProducts){
-                if(subproductId==subProduct.subproductId){
-                    product.subProducts.push(subProduct);
-                }
-            }
-        }
-    }
-
-    return products;
-}
-function joinSubcategory(subcategory,products){
-    for(let subcat of subcategory){
-        for(let productId of subcat.childIds){
-            for(let product of products){
-                if(productId==product.productId){
-                    subcat.products.push(product);
-                }
-            }
-        }
-    }
-
-    return subcategory;
-}
 
 
 
