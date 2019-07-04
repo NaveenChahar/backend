@@ -128,7 +128,7 @@ const ProductCrud={
         }
     },
 
-    async uploadProducts(req,res,categories,subcategories,products,subProdcuts){
+    async uploadProducts(req,res,categories,subcategories,products,subProducts){
         // try{
         // var session= await Products.Products.startSession();
         // console.log("came hweer")
@@ -153,15 +153,24 @@ const ProductCrud={
                     res.status(500).json('some error');
                 }
                 else{
-                    Products.Products.insertMany(categories);
+                    Products.Products.insertMany(categories,(err)=>{
+                        if(err){
+                            res.status(500).json('some error');
+                        }
+                    });
                 }
             })
+
             Products.SubCat.remove({},(err)=>{
                 if(err){
                     res.status(500).json('some error');
                 }
                 else{
-                    Products.SubCat.insertMany(subcategories);
+                    Products.SubCat.insertMany(subcategories,(err)=>{
+                        if(err){
+                            res.status(500).json('some error');
+                        }
+                    });
                 }
             })
             Products.Product1.remove({},(err)=>{
@@ -169,7 +178,11 @@ const ProductCrud={
                     res.status(500).json('some error');
                 }
                 else{
-                    Products.Product1.insertMany(products);
+                    Products.Product1.insertMany(products,(err)=>{
+                        if(err){
+                            res.status(500).json('some error');
+                        }
+                    });
                 }
             })
             Products.SubProduct.remove({},(err)=>{
@@ -177,7 +190,11 @@ const ProductCrud={
                     res.status(500).json('some error');
                 }
                 else{
-                    Products.SubProduct.insertMany(subProdcuts);
+                    Products.SubProduct.insertMany(subProducts,(err)=>{
+                        if(err){
+                            res.status(500).json('some error');
+                        }
+                    });
                 }
             })
         }
@@ -196,9 +213,11 @@ const ProductCrud={
                 res.status(500).json('some error')
             }
             else if(object!=null){
-                subproduct.info.description=req.body.description;
-            subproduct.info.benefitsAndUses=req.body.benefitsAndUses;
-            subproduct.info.priceAndAmount=req.body.priceAndAmount;
+                object.info.isExpress=req.body.isExpress;
+                object.info.brand=req.body.brand;
+                object.info.description=req.body.description;
+            object.info.benefitsAndUses=req.body.benefitsAndUses;
+            object.info.priceAndAmount=req.body.priceAndAmount;
             object.save((err)=>{
                 if(err){
                     console.log("some error occured during database query");
@@ -308,8 +327,8 @@ const ProductCrud={
                 res.status(500).json('some error')
             }
             else if(object!=null){
-                object.imageUrls.push(result);
-            object.save((err)=>{
+                object.imageUrls.splice(req.body.index,1);
+                object.save((err)=>{
                 if(err){
                     console.log("some error occured during database query");
                     res.status(409).json('some error occured during database query');
@@ -478,7 +497,7 @@ const ProductCrud={
                     for(let obj of subproducts1){
                         
                         let priceArray=[];
-                                if(obj.info.priceAndAmount){
+                                if(obj.info.priceAndAmount){ 
                                     for(let obj4 of obj.info.priceAndAmount){
                                          priceArray.push(obj4);
                                 }}
@@ -486,7 +505,8 @@ const ProductCrud={
                                 if(obj.imageUrls){
                                 for(let obj5 of obj.imageUrls){
                                     let obj6={
-                                        uri: obj5.uri
+                                        uri: obj5.uri,
+                                        key: obj5.key
                                     }
                                     imageArray.push(obj6);
                                 }}
@@ -494,6 +514,8 @@ const ProductCrud={
                                     subproductId:obj.subproductId,
                                     subproductName:obj.subproductName,
                                     info:{
+                                        isExpress:obj.info.isExpress,
+                                        brand:obj.info.brand,
                                         description:obj.info.description,
                                         benefitsAndUses:obj.info.benefitsAndUses,
                                         priceAndAmount:priceArray,
