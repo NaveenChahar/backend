@@ -90,30 +90,26 @@ adminRoutes.post('/upload',function(req,res){
                         
                         for(let category of result){
                             let category1={
-                                categoryId:null,
-                                categoryName:null,
+                                categoryId:category.categoryid,
+                                categoryName:category.categoryname,
                                 childIds:[],
                                 subcategory:[]
                             }
-                            category1.categoryId=category.categoryid;           //converted string into array and
-                            category1.categoryName=category.categoryname;  
-                            console.log('we were here');     //defined structure
                             category1.childIds=convertArray(category.childids);
                             categories.push(category1);
-                            console.log(categories);
+                            //console.log(categories);
                         }
                     }
                     if(key=='subcategories'){
                         
                         for(let subcat of result){
                             let subcategory1={
-                                subcategoryId:null,
-                                subcategoryName:null,
+                                subcategoryId:subcat.subcategoryid,
+                                subcategoryName:subcat.subcategoryname,
                                 childIds:[],
                                 products:[]
-                            }
-                            subcategory1.subcategoryId=subcat.subcategoryid;           //converted string into array and
-                            subcategory1.subcategoryName=subcat.subcategoryname;       //defined structure
+                            }       //converted string into array and
+                                    //defined structure
                             subcategory1.childIds=convertArray(subcat.childids);
                             subcategory.push(subcategory1);
                         }
@@ -122,13 +118,11 @@ adminRoutes.post('/upload',function(req,res){
                         
                         for(let product of result){
                             let product1={
-                                productId:null,
-                                productName:null,
+                                productId:product.productid,
+                                productName:product.productname,
                                 childIds:[],
                                 subProducts:[]
                             }
-                            product1.productId=product.productid;           //converted string into array and
-                            product1.productName=product.productname;       //defined structure
                             product1.childIds=convertArray(product.childids);
                             products.push(product1);
                         }
@@ -137,20 +131,17 @@ adminRoutes.post('/upload',function(req,res){
                         
                         for(let subproduct of result){
                             let subproduct1={
-                                subproductId:null,
-                                subproductName:null,
+                                subproductId:subproduct.subproductid,
+                                subproductName:subproduct.subproductname,
                                 subcategoryId:null,
                                 productId:null,
                                 info:{
-                                    description:null,
-                                    benefitsAndUses:null,
+                                    brand:subproduct.brand,
+                                    description:subproduct.description,
+                                    benefitsAndUses:subproduct.benefitsanduses,
                                     priceAndAmount:[]
                                 },
                             }
-                            subproduct1.subproductId=subproduct.subproductid;           //converted string into array and
-                            subproduct1.subproductName=subproduct.subproductname;       //defined structure
-                            subproduct1.info.description=subproduct.description;
-                            subproduct1.info.benefitsAndUses=subproduct.benefitsanduses;
                             subProducts.push(subproduct1);
                         }
                     }
@@ -199,6 +190,7 @@ adminRoutes.post('/upload',function(req,res){
             //console.log(finalJson);
             //console.log("we were here1")
             subProducts=joins.createFieldsInSubProduct(subcategory,products,subProducts);
+            //console.log(subProducts)
             productCrud.uploadProducts(req,res,categories,subcategory,products,subProducts);
             }
             
@@ -258,9 +250,61 @@ adminRoutes.post('/editCategoryList',verifyToken,(req,res)=>{
             var subcategory=[];
             var products=[];
             var subProducts=[];
-            for(let category in categorylist){
+            for(let category of categorylist){
                 //do this
+                let catobj={categoryId:category.categoryId,
+                        categoryName:obj.categoryName,
+                        childIds:obj.childIds,
+                        subcategory:[]
+                    }
+                categories.push(catobj);
+                for(let subcat of category.subcategory){
+                    let subcatobj={subcategoryId:subcat.subcategoryId,
+                        subcategoryName:subcat.subcategoryName,
+                        childIds:subcat.childIds,
+                        products:[]
+                    };
+                    subcategory.push(subcatobj);
+                    for(let product of subcat.products){
+                        let proobj={productId:product.productId,
+                            productName:product.productName,
+                            childIds:product.childIds,
+                            subProducts:[]
+                        };
+                        products.push(proobj);
+                        for(let subproduct of product.subProducts){
+                            let priceArray=[];
+                                if(subproduct.info.priceAndAmount){ 
+                                    for(let obj4 of subproduct.info.priceAndAmount){
+                                         priceArray.push(obj4);
+                                }}
+                                let imageArray=[];
+                                if(subproduct.imageUrls){
+                                for(let obj5 of subproduct.imageUrls){
+                                    let obj6={
+                                        uri: obj5.uri,
+                                        key: obj5.key
+                                    }
+                                    imageArray.push(obj6);
+                                }}
+                            let subproobj={
+                                    subproductId:subproduct.subproductId,
+                                    subproductName:subproduct.subproductName,
+                                    info:{
+                                        isExpress:subproduct.info.isExpress,
+                                        brand:subproduct.info.brand,
+                                        description:subproduct.info.description,
+                                        benefitsAndUses:subproduct.info.benefitsAndUses,
+                                        priceAndAmount:priceArray,
+                                    },
+                                    imageUrls:imageArray
+                                }
+                        subProducts.push(subproobj);
+                        }
+                    }
+                }
             }
+            subProducts=joins.createFieldsInSubProduct(subcategory,products,subProducts);
             productCrud.uploadProducts(req,res,categories,subcategory,products,subProducts);
         }
     })
@@ -391,8 +435,10 @@ adminRoutes.post('/bulkAddUpload',(req,res)=>{
                 if(err) {
                     return res.json({error_code:1,err_desc:err, data: null});
                 } 
+                else if(result!=null){
                 console.log(result);
                 //do whatever you want
+                var dataArr=[];
                 for(let data of result){
                     let object={
                         city:data.city,
@@ -401,9 +447,11 @@ adminRoutes.post('/bulkAddUpload',(req,res)=>{
                         pincode:data.pincode,
                         status:data.status
                     }
-                    addressCrud.addAddress(object);
+                    dataArr.push(object)
                 }
-                res.json({error_code:0,err_desc:null, data: result});
+                addressCrud.addBulkAddress(res,dataArr);
+                }
+                //res.json({error_code:0,err_desc:null, data: result});
             });
         } catch (e){
             logger.debug('some error occured during adding new address inside multer');
@@ -412,7 +460,7 @@ adminRoutes.post('/bulkAddUpload',(req,res)=>{
     })
 })
 
-adminRoutes.post('/singleAddCrud',verifyToken,(req,res)=>{
+adminRoutes.post('/singleAddCrud',(req,res)=>{
     if(req.body.optype=='add'){
         // let object={
         //     city:req.body.city,
@@ -423,19 +471,19 @@ adminRoutes.post('/singleAddCrud',verifyToken,(req,res)=>{
         // }
         let object=new addressModel(req.body.city,idGen.idgenerator(req.body.pincode),
                         req.body.areaName,req.body.pincode,req.body.status);
-        addressCrud.addAddress(object);
+        addressCrud.addAddress(res,object);
     }
     else if(req.body.optype=='delete'){
        
         let object=new addressModel(req.body.city,req.body.areaId,
                         req.body.areaName,req.body.pincode,req.body.status)
-        addressCrud.deleteAddress(object);
+        addressCrud.deleteAddress(res,object);
     }
     else if(req.body.optype=='edit'){
 
         let object=new addressModel(req.body.city,req.body.areaId,
                         req.body.areaName,req.body.pincode,req.body.status)
-        addressCrud.updateAddress(object);
+        addressCrud.updateAddress(res,object);
     }
 })
 //footer data management by admin
