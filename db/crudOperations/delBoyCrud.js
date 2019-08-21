@@ -57,7 +57,7 @@ const delBoyCrud={
                     Stream.emit('push','message',null);
                   }
             })
-        }, 200000);
+        }, 100000);
     },
     async autoOrderAllocation(res,order){ 
         //find loc using vendorId
@@ -76,7 +76,7 @@ const delBoyCrud={
                 },
                 {verified:true},
                 {status:'available'}
-            ]},{$set:{notifications:{deliveryId:order.deliveryId,
+            ]},{$push:{notifications:{deliveryId:order.deliveryId,
                                       vendorId:order.vendorId}
                 }},(err)=>{
                   if(err){
@@ -95,8 +95,8 @@ const delBoyCrud={
         
     },
     manualOrderAllocation(res,order){ 
-        delBoys.findOne({pendingOrders:{deliveryId:order.deliveryId,
-            vendorId:order.vendorId },'verified':true},(err,doc)=>{
+        delBoys.findOne({pendingOrders:{$elemMatch:{deliveryId:order.deliveryId,
+            vendorId:order.vendorId }},'verified':true},(err,doc)=>{
             if(err){
                 console.log('error')
                 res.status(500).json('some error occures');
@@ -108,7 +108,7 @@ const delBoyCrud={
                     },
                     {verified:true},
                     {status:'available'}
-                ]},{$set:{pendingOrders:{deliveryId:order.deliveryId,
+                ]},{$push:{pendingOrders:{deliveryId:order.deliveryId,
                                         vendorId:order.vendorId                      
                                     }
                 }},(err)=>{       //add docs as param to find if delboy is still aactive or not
@@ -118,7 +118,7 @@ const delBoyCrud={
                       }
                       else{ 
                         //update the joinproducts collection
-                        joinOrderSchema.joinOrderSchema.findOneAndUpdate({deliveryId:order.deliveryId,
+                        orderJoin.joinOrderSchema.findOneAndUpdate({deliveryId:order.deliveryId,
                             vendorId:order.vendorId},{deliveryBoyId:empId},(err)=>{
                                 if(err){
                                     res.status(500).json('some error occures');  
@@ -333,13 +333,12 @@ const delBoyCrud={
     },
 
     rejectOrder(res,order,empId){
-        //console.log(orderData,empId)
         delBoys.findOneAndUpdate({empId:empId,notifications:{deliveryId:order.deliveryId,
             vendorId:order.vendorId },'verified':true},
             {$pull:{notifications:{deliveryId:order.deliveryId,
                 vendorId:order.vendorId }}},(err)=>{
             if(err){
-                res.status(500).json('some error occurs');
+                res.status(500).json('some error occurs',err);
             }
             else{
                 res.status(200).json('notification removed');
@@ -350,30 +349,34 @@ const delBoyCrud={
     acceptOrder(res,order,empId){
         //push into pending & delete from notifications
         //first check into order collection to check if its already alloted then do this
-        delBoys.findOne({pendingOrders:{deliveryId:order.deliveryId,
-            vendorId:order.vendorId },'verified':true},(err,doc)=>{
+        
+        delBoys.findOne({pendingOrders:{$elemMatch:{deliveryId:order.deliveryId,
+            vendorId:order.vendorId }},'verified':true},(err,doc)=>{
             if(err){
                 console.log('error')
                 res.status(500).json('some error occures');
             }
             else if(doc==null){
-                delBoys.findOneAndUpdate({empId:empId,'verified':true},{$set:{pendingOrders:
-                    {deliveryId:order.deliveryId,vendorId:order.vendorId }}},(err)=>{
+                delBoys.findOneAndUpdate({empId:empId,'verified':true},{$push:{pendingOrders:
+                    {deliveryId:order.deliveryId,vendorId:order.vendorId }}},(err,doc)=>{
                     if(err){
                         res.status(500).json('some error occures');
                     }
                     else{
+                        console.log('here')
                         //update the joinproducts collection
-                        joinOrderSchema.joinOrderSchema.findOneAndUpdate({deliveryId:order.deliveryId,
+                        orderJoin.joinOrderSchema.findOneAndUpdate({deliveryId:order.deliveryId,
                             vendorId:order.vendorId},{deliveryBoyId:empId},(err)=>{
                                 if(err){
                                     res.status(500).json('some error occures');  
                                 }
                                 else{
                                     //delete from notificaton of all
-                                    delBoys.updateMany({notifications:deliveryId},
+                                    delBoys.updateMany({notifications:{$elemMatch:{deliveryId:order.deliveryId,
+                                        vendorId:order.vendorId }}},
                                         {$pull:{notifications:{deliveryId:order.deliveryId,
-                                                            vendorId:order.vendorId }}},(err)=>{
+                                                            vendorId:order.vendorId }}},
+                                        (err)=>{
                                             if(err){
                                                 res.status(500).json('some error occures');
                                             }
