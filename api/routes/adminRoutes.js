@@ -10,6 +10,8 @@ const nullChecker=require('../../Utils/nullChecker');
 const joins=require('../../Utils/productJoins');
 //const async=require('async_hooks')
 
+const delBoyCrud=require('../../db/crudOperations/delBoyCrud')
+
 const upload=require('../../Utils/multer/commonExcelUpload');    //requiring multer for excel upload
 const upload2=require('../../Utils/multer/productImagess3');   //requiring multer s3 for image upload
 const securekey ='Imsecure';          //secret key of webtokens
@@ -210,12 +212,12 @@ adminRoutes.post('/upload',function(req,res){
 adminRoutes.post('/getImagesUrl',(req,res)=>{
     let returnImagesArray={};
     for(let key of req.body.keyArray){
-        console.log(key+' '+req.body.mobile_no+'.png',req.body.keyArray)
+        //console.log(key+' '+req.body.mobile_no+'.png',req.body.keyArray)
  let params={Bucket:'big-basket-bucket',Key:key+' '+req.body.mobile_no+'.png'}; //seconds
 
  s3.getObject(params,(url)=>{
     if(url!=null){
-        console.log(url);
+        //console.log(url);
         returnImagesArray[key]=url;
     }
 });
@@ -517,6 +519,27 @@ adminRoutes.get('/getaboutdata',(req,res)=> {
     aboutUsOperations.getAboutData(res);
 })
 
+
+adminRoutes.post('/autoOrderAllocation',(req,res)=>{
+    console.log(req.body)
+    var obj={
+        deliveryId:req.body.deliveryId,
+        vendorId:req.body.vendorId,
+    }
+    console.log(obj)
+    delBoyCrud.autoOrderAllocation(res,obj)
+})
+
+adminRoutes.post('/manualOrderAllocation',(req,res)=>{
+    console.log(req.body)
+    var obj={
+        deliveryId:req.body.deliveryId,
+        vendorId:req.body.vendorId,
+        empId:req.body.delBoyId
+    }
+    console.log(obj)
+    delBoyCrud.manualOrderAllocation(res,obj)
+})
 
 
 function verifyToken(req,res,next){               //checking for webtoken in the header of req and filling it into req.token
